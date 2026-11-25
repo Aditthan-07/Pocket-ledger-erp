@@ -1,71 +1,43 @@
 # Pocket Ledger
 
-## Order-to-Audit Manufacturing & GST ERP
-### NIT Tiruchirappalli — Centre for Development of Industry (CDI) Assessment
-**Prototype Implementation for Small-Scale Packaged Snacks Manufacturing (Karur, Tamil Nadu)**
+**Auditable Order-to-Audit Manufacturing & GST ERP Prototype**  
+Built for small-scale packaged snacks manufacturing (Karur, Tamil Nadu) — *NIT Tiruchirappalli Centre for Development of Industry (CDI) Assessment*
+
+[![Python](https://img.shields.io/badge/Python-3.10+-1F2937?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-0F766E?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-1D4ED8?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-1E40AF?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![SQLite](https://img.shields.io/badge/SQLite%20%2F%20PostgreSQL-Integer--Paisa-374151?style=flat-square)](https://www.sqlite.org/)
+
+> 🎥 **Full 1080p Demo Walkthrough:** [Watch on YouTube](https://youtu.be/Qo33yg0E5bE)  
+> 📄 **Architecture & Accounting Proof:** [DESIGN_NOTE.md](DESIGN_NOTE.md) · [DESIGN_NOTE.pdf](DESIGN_NOTE.pdf)
 
 ---
 
-## Demo Walkthrough Video
+## ⚡ Overview
 
-A complete 1080p browser walkthrough demonstrating all six personas, order-to-dispatch workflows, live GST calculations, two-step production execution, and auditor verification is available on YouTube:
+Pocket Ledger replaces fragmented paper registers in small packaged-snack units (`Murukku`, `Mixture`, `Banana Chips`, `Thattai`) with a single **Order-to-Audit loop**—eliminating untracked dough-to-pouch scrap, floating-point tax drift, and disconnected field-to-factory stock visibility.
 
-- **Full Video Demonstration:** [https://youtu.be/Qo33yg0E5bE](https://youtu.be/Qo33yg0E5bE)
-
----
-
-## 1. Executive Overview
-
-Pocket Ledger is an auditable, commercial-grade Order-to-Audit ERP prototype engineered for small-scale packaged snack manufacturers in South India (e.g., traditional Murukku, Mixture, Banana Chips, and Thattai production units). 
-
-The application resolves the core operational friction points of small manufacturing enterprises: manual paper registers, untracked dough-to-pouch production scrap, erroneous floating-point tax calculations, inventory drift, and complex multi-state GST compliance.
-
-The user interface follows a clean, industrial design language inspired by Frappe Books, emphasizing high data density, clear contrast, and zero visual clutter. It features an instant role switcher across six personas and provides full bilingual support (English and Tamil / தமிழ்) tailored for shop-floor supervisors.
+```text
+[Field Sales (A & B)] --> [Factory Admin] --> [Floor Supervisor] --> [Auditor & Owner]
+ Offline/Online Order      Stock & Demand      2-Step BOM Batch       Real-Time Parity
+ Place-of-Supply GST       GST Tax Invoice     >3% Yield Alert        GSTR-1/3B Exports
+ Territory Isolation       Dispatch & e-Way    Immutable Ledger       Margin & Ageing
+```
 
 ---
 
-## 2. Core Architecture & Accounting Invariants
+## 🏛️ Core Architecture & Accounting Safeguards
 
-### 2.1 Technical Stack
-
-- **Backend:** FastAPI, SQLAlchemy 2.0 (Declarative ORM), Pydantic v2, SQLite (`pocket_ledger.db`) with full PostgreSQL schema compatibility.
-- **Frontend:** React 18, TypeScript, Vite 5, Tailwind CSS, Lucide icons.
-- **Document & Reporting Engines:**
-  - **PDF Generation:** ReportLab for statutory B2B GST tax invoices conforming to CBIC guidelines.
-  - **Excel Generation:** OpenPyXL for auditor registers (GSTR-1, GSTR-3B, Stock Ledger, Sales Register, Purchase Register, Costing Sheets).
+- **Integer-Paisa Monetary Arithmetic:** Every monetary amount (unit rates, tax splits, line totals, invoices, settlements) is stored and computed in signed 64-bit integer paisa ($\text{₹}1.00 = 100\text{ paisa}$) with strict half-up rounding only at the final paisa boundary, eliminating floating-point rounding drift.
+- **Immutable Append-Only Stock Ledger:** No mutable `current_stock` column exists on items; inventory balance is derived on-the-fly ($\text{Current Stock} = \sum \Delta \text{Quantity}$) across immutable transaction records (`OPENING`, `PURCHASE`, `PROD_ISSUE`, `PROD_YIELD`, `PROD_SCRAP`, `SALE_DISPATCH`, `CREDIT_RETURN`), rejecting negative stock at the database level.
+- **Place-of-Supply GST Engine (`State Code: 33`):** Dynamically applies `2.5% CGST + 2.5% SGST` for intra-state Tamil Nadu buyers, `5.0% IGST` for inter-state buyers (Kerala, Karnataka, AP, Telangana), and `0% LUT` for bonded port dispatches (Chennai Seaport, Tuticorin Port).
+- **Two-Step BOM & `>3%` Variance Flagging:** Decouples dough mixing (raw ingredients to bulk dough) from frying/packaging (pouches & cartons to finished SKUs), absorbs materials, packaging, direct labour, and factory overhead into unit costing, and automatically raises audit flags whenever yield or ingredient consumption deviates by > 3.0% from the standard recipe.
+- **Statutory Document Engines:** ReportLab generates CBIC-compliant B2B GST tax invoices (`INV/26-27/XXXX`) with HSN summaries and QR blocks, while OpenPyXL generates 6 real-time audit registers (GSTR-1, GSTR-3B, Sales, Purchases, Stock Ledger, Batch Costing).
 
 ---
 
-### 2.2 Core Financial & Inventory Safeguards
-
-#### Integer-Paisa Monetary Arithmetic
-Floating-point arithmetic in standard programming languages causes accumulated binary roundoff errors (for example, `0.1 + 0.2 != 0.3`). Pocket Ledger stores and calculates every monetary value—rates, unit prices, line subtotals, tax splits, invoice grand totals, customer payments, and outstanding balances—as signed 64-bit integers (`int`) representing **paisa** ($\text{₹}1.00 = 100 \text{ paisa}$). Rounding is performed exclusively at the final paisa boundary using standard half-up arithmetic, guaranteeing zero fractional drift across all transactions.
-
-#### Immutable Append-Only Stock Ledger
-The database schema contains no mutable `current_stock` column on item records. Current inventory balance is strictly derived in real-time by aggregating movements:
-$$\text{Current Stock} = \sum \text{qty\_change}$$
-Every inventory change creates an immutable transaction in `stock_ledger` recording quantity change, running weighted average cost, reference document ID, and movement type (`OPENING`, `PURCHASE`, `PROD_ISSUE`, `PROD_YIELD`, `PROD_SCRAP`, `SALE_DISPATCH`, `CREDIT_RETURN`). Negative inventory balance states are strictly rejected at the database transaction layer.
-
-#### Place-of-Supply GST Engine
-The manufacturing facility is registered in Karur, Tamil Nadu (`State Code: 33`, GSTIN: `33AAAAA0000A1Z5`). The tax engine dynamically resolves the Place of Supply:
-- **Intra-State (Tamil Nadu):** 5% GST split equally into 2.5% CGST + 2.5% SGST.
-- **Inter-State (Kerala, Karnataka, Andhra Pradesh, Telangana):** 5% IGST levied in full.
-- **Export Under Bond / LUT:** Designated port dispatches (Chennai Seaport, Tuticorin Port) processed under Letter of Undertaking (0% LUT) with zero tax charge.
-
-#### Two-Step Bill of Materials (BOM) & Unit Costing
-Manufacturing is decoupled into two physical stages:
-1. **Dough / Base Mixing:** Bulk raw material consumption (flour, edible oil, salt and spice blends) to produce bulk finished dough.
-2. **Frying & Packaging:** Packaging material consumption (food-grade pouches, corrugated shipping cartons) to produce finished retail Stock Keeping Units (SKUs).
-
-Batch costing absorbs direct material costs, packaging costs, direct labor, and factory overhead:
-$$\text{Unit Cost per Packet} = \frac{\text{Direct Materials} + \text{Packaging} + \text{Direct Labour} + \text{Factory Overhead}}{\text{Actual Finished Packets Produced}}$$
-
-#### Automatic >3% Yield Variance Audit Flagging
-Any production run where raw material consumption or finished packet yield deviates by more than $3.0\%$ from the engineered standard recipe is automatically flagged as a high-priority variance in the database and surfaced to management and auditors.
-
----
-
-## 3. Role-Based Workflows (6 Personas)
+## 👥 Role-Based Workflows (6 Personas)
 
 Pocket Ledger provides role-based access control with distinct operational boundaries. Evaluators can switch between personas instantly using the top navigation bar switcher:
 
@@ -80,92 +52,42 @@ Pocket Ledger provides role-based access control with distinct operational bound
 
 ---
 
-## 4. Quickstart & Automated Verification
+## 🚀 Quickstart & Verification
 
-### 4.1 Prerequisites
-- Python 3.10 or higher
-- Node.js 18 or higher (with npm)
+### Prerequisites
+- Python 3.10+ & Node.js 18+ (npm)
 
----
+### Single-Command Launch
+- **Windows:** `run.bat`
+- **Linux / macOS:** `chmod +x run.sh && ./run.sh`
+- **Docker Compose:** `docker compose up --build`
 
-### 4.2 Backend Setup
-
+### Manual Setup
 ```bash
-# 1. Install backend dependencies
+# Backend (FastAPI - http://127.0.0.1:8000)
 pip install -r backend/requirements.txt
-
-# 2. Reset database to clean opening benchmark state
 python backend/reset_db.py
-
-# 3. Start FastAPI server
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+# Frontend (React 18 + Vite - http://127.0.0.1:5173)
+cd frontend && npm install && npm run dev
 ```
 
-The FastAPI application will be accessible at:
-- **API Root & Health:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Interactive Swagger Documentation:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **ReDoc Documentation:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-
----
-
-### 4.3 Frontend Setup
-
+### Automated Verification Suites
 ```bash
-# 1. Navigate to frontend directory and install dependencies
-cd frontend
-npm install
-
-# 2. Start Vite development server
-npm run dev
-```
-
-The React single-page application will be accessible at:
-- **Application Portal:** [http://127.0.0.1:5173](http://127.0.0.1:5173)
-
----
-
-### 4.4 Single-Command Execution Alternatives
-
-- **Windows Batch Script:**
-  ```cmd
-  run.bat
-  ```
-- **Linux / macOS Shell Script:**
-  ```bash
-  chmod +x run.sh
-  ./run.sh
-  ```
-- **Docker Compose:**
-  ```bash
-  docker compose up --build
-  ```
-
----
-
-### 4.5 Automated Verification Suites
-
-The repository includes four automated test suites validating the end-to-end accounting invariants, production workflows, and tax computations:
-
-```bash
-# Phase 1: Database models, units, schema validation, and seed verification
-python backend/test_phase1.py
-
-# Phase 2: Stock ledger transactions, BOM execution, and variance detection
-python backend/test_phase2.py
-
-# Phase 3: Complete 9-step Section 5 benchmark test
-python backend/test_phase3.py
-
-# Complete End-to-End Suite: Cross-role flow, inter-state taxes, and audit parity
-python backend/verify_e2e_full.py
-
-# Frontend TypeScript compilation and production build
-cd frontend && npm run build
+python backend/test_phase1.py        # Phase 1: Models & schema verification
+python backend/test_phase2.py        # Phase 2: Stock ledger transactions & BOM variance
+python backend/test_phase3.py        # Phase 3: Complete 9-step Section 5 benchmark test
+python backend/verify_e2e_full.py    # E2E: Cross-role flows, inter-state taxes & audit parity
+cd frontend && npm run build         # Frontend TypeScript compilation & production build
 ```
 
 ---
 
-## 5. Section 5 Benchmark Results
+<details>
+<summary><strong>📊 Expand Section 5 (9-Step) Verified Benchmark Results</strong></summary>
+
+<br />
 
 The system implements and verifies the complete 9-step benchmark scenario specified in the assessment requirements:
 
@@ -189,9 +111,14 @@ The system implements and verifies the complete 9-step benchmark scenario specif
 | **Step 8** | Batch Overhead Allocation & Costing | Cost Per Packet | Materials: ₹4,055 + Labour ₹1,200 + Overheads ₹600 | ₹31.14 / pkt (3114 paisa), Margin: 37.72% | Verified |
 | **Step 9** | Statutory Auditor Audit Check | Double-Entry Drift | Zero Paisa Drift across all transactions | 0 Paisa Drift, 100% Audit Score | Verified |
 
+</details>
+
 ---
 
-## 6. Project Directory Structure
+<details>
+<summary><strong>📁 Expand Repository Directory Structure</strong></summary>
+
+<br />
 
 ```text
 Pocket-Ledger/
@@ -267,12 +194,15 @@ Pocket-Ledger/
 |-- run.sh                             # Linux/macOS startup script
 ```
 
+</details>
+
 ---
 
-## 7. NIT Trichy CDI Deliverables Mapping
+## 🎯 NIT Trichy CDI Deliverables Mapping
 
 | Deliverable | Description | Location in Repository |
 | :--- | :--- | :--- |
-| **Deliverable 1** | **Working Prototype** | Full-stack application in [backend/](file:///D:/PROJECT/Pocket-Ledger/backend/) and [frontend/](file:///D:/PROJECT/Pocket-Ledger/frontend/), executable via `run.bat` or `run.sh`. |
-| **Deliverable 2** | **System Documentation** | This [README.md](file:///D:/PROJECT/Pocket-Ledger/README.md) documenting architecture, role workflows, setup instructions, and benchmark verification. |
-| **Deliverable 3** | **Technical Design Note** | Comprehensive design document in [DESIGN_NOTE.md](file:///D:/PROJECT/Pocket-Ledger/DESIGN_NOTE.md) and compiled [DESIGN_NOTE.pdf](file:///D:/PROJECT/Pocket-Ledger/DESIGN_NOTE.pdf). |
+| **Deliverable 1** | **Working Prototype** | Full-stack application in [backend/](backend/) and [frontend/](frontend/), executable via `run.bat` or `run.sh`. |
+| **Deliverable 2** | **System Documentation** | This [README.md](README.md) documenting architecture, role workflows, setup instructions, and benchmark verification. |
+| **Deliverable 3** | **Technical Design Note** | Comprehensive design document in [DESIGN_NOTE.md](DESIGN_NOTE.md) and compiled [DESIGN_NOTE.pdf](DESIGN_NOTE.pdf). |
+| **Deliverable 4** | **Walkthrough Video** | Full 1080p demonstration across all 6 personas on [YouTube](https://youtu.be/Qo33yg0E5bE). |
