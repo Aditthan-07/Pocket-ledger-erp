@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  background-color: #F6F7F9;
+}
+
+body {
+  margin: 0;
+  background-color: #F6F7F9;
+  color: #111827;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Frappe Books Heading Typography */
+h1, h2, h3, h4, .font-heading, .page-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Tabular Numbers Across All Tables, Badges and Accounting Figures */
+.tabular-nums, table, td, th, input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Signature Frappe Books Document Cards */
+.erp-card, .document-card {
+  background-color: #FFFFFF;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04), 0 1px 2px rgba(16, 24, 40, 0.02);
+  padding: 1.5rem;
+}
+
+/* KPI Cards with Soft Ambient Elevation */
+.kpi-card {
+  background-color: #FFFFFF;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04), 0 1px 2px rgba(16, 24, 40, 0.02);
+  padding: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kpi-card:hover {
+  box-shadow: 0 4px 12px -2px rgba(16, 24, 40, 0.06), 0 2px 4px -1px rgba(16, 24, 40, 0.03);
+  border-color: rgba(203, 213, 225, 0.9);
+}
+
+/* Signature Frappe Books Accounting Tables */
+.erp-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.erp-table th {
+  background-color: #F8FAFB;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4B5563;
+  padding: 0.65rem 0.875rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.erp-table td {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid #F3F4F6;
+  color: #111827;
+  font-size: 0.8125rem;
+}
+
+.erp-table tr:hover td {
+  background-color: #F9FAFB;
+}
+
+/* Frappe Proforma Voucher Sheet */
+.proforma-sheet {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 4px 20px -2px rgba(16, 24, 40, 0.06), 0 2px 6px -1px rgba(16, 24, 40, 0.03);
+  border-radius: 0.75rem;
+}
+
+/* Calm, refined scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Subtle Shimmer for skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Live GPS Map Pulse Animation */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.animate-radar {
+  animation: radar-pulse 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
