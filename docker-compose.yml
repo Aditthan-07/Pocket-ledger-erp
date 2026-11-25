@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  pocket-ledger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pocket_ledger_app
+    ports:
+      - "8000:8000"
+    environment:
+      - FACTORY_STATE=Tamil Nadu
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ledger_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  ledger_data:
