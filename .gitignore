@@ -1,0 +1,48 @@
+# Python Environments & Bytecode
+.env
+.env.*
+venv/
+.venv/
+env/
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+pocket_ledger.db
+
+# Frontend Dependencies & Builds
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+dist-ssr/
+frontend/dist-ssr/
+*.local
+*.tsbuildinfo
+frontend/*.tsbuildinfo
+
+# IDE & Editor Configurations
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Media & Video Binaries
+*.mp4
+*.webm
+*.mov
+Pocket_Ledger_Demo.mp4
